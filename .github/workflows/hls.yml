@@ -1,4 +1,4 @@
-name: BBB
+name: Generate AltureTV HLS
 
 on:
   push:
@@ -16,19 +16,24 @@ jobs:
       - name: Install FFmpeg
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
+      - name: Download video from Dropbox
+        run: |
+          mkdir input
+          wget -O input/video.avi "https://dl.dropboxusercontent.com/scl/fi/mec5mt2707xz0c61fms8j/big_buck_bunny_720p_surround.avi?rlkey=b6jkt7rsw2nue4jummwoss4ef&st=t4s3wzwm"
+
       - name: Generate HLS
         run: |
-          mkdir output
-          ffmpeg -stream_loop -1 -i video.mp4 \
-            -c:v libx264 -preset veryfast -crf 20 \
-            -c:a aac -b:a 128k \
-            -f hls -hls_time 4 -hls_list_size 0 \
-            -hls_segment_filename "output/segment_%03d.ts" \
-            output/stream.m3u8
+          mkdir -p output/bbb
+          ffmpeg -stream_loop -1 -i input/video.avi \
+            -vf scale=1280:-1 \
+            -c:v libx264 -preset veryfast -crf 28 \
+            -c:a aac -b:a 96k \
+            -f hls -hls_time 6 -hls_list_size 0 \
+            -hls_segment_filename "output/bbb/segment_%03d.ts" \
+            output/bbb/stream.m3u8
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./output
- 
